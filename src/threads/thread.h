@@ -95,6 +95,8 @@ struct thread
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
+    struct file fdtable[128] = NULL;
+    /* Lägg in file descriptor table här*/
 #endif
 
     /* Owned by thread.c. */
