@@ -18,7 +18,7 @@ syscall_init (void)
 static void
 syscall_handler (struct intr_frame *f UNUSED)
 {
-  switch(*(uint32_t *)f->esp){
+  switch(*(uint32_t *)(f->esp)){
     case SYS_HALT:
       printf("HALT\n");
       halt();
@@ -29,19 +29,23 @@ syscall_handler (struct intr_frame *f UNUSED)
       break;
     case SYS_CREATE:
       printf("CREATE\n");
-      f->eax = create(*(char **)f->esp+4, *(unsigned *)f->esp+8);
+      (f->eax) = create(*(char **)(f->esp+4), *(unsigned *)(f->esp+8));
       break;
     case SYS_OPEN:
       printf("OPEN\n");
-      f->eax =open(*(char **)f->esp+4);
+      (f->eax) =open(*(char **)(f->esp+4));
       break;
     case SYS_CLOSE:
       printf("CLOSE\n");
-      close(*(int *)f->esp+4);
+      close(*(int *)(f->esp+4));
       break;
     case SYS_WRITE:
       printf("WRITE\n");
-      f->eax = write(*(int*)f->esp+4, *(char **)f->esp+8, *(unsigned*)f->esp+12);
+      (f->eax) = write(*(int*)(f->esp+4), *(char **)(f->esp+8), *(unsigned*)(f->esp+12));
+      break;
+    case SYS_READ:
+      printf("READ\n");
+      (f->eax) = read(*(int*)(f->esp+4), *(char **)(f->esp+8), *(unsigned*)(f->esp+12));
       break;
     case SYS_EXIT:
     default:
