@@ -83,7 +83,7 @@ void close(int fd){
 }
 
 int write(int fd, const void *buffer, unsigned size){
-  struct file *fil_ = thread_current()->fdtable[fd];
+  struct file *file = thread_current()->fdtable[fd];
 
   if(fd == 1){
     putbuf(buffer, size);
@@ -92,9 +92,6 @@ int write(int fd, const void *buffer, unsigned size){
   if(file == NULL){
     return -1;
   }
-
+  return file_write(file, buffer, size);
 }
 
-//void exit(int status){
-
-//}
