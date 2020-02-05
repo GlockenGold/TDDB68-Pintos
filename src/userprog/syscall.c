@@ -45,7 +45,7 @@ syscall_handler (struct intr_frame *f UNUSED)
       break;
     case SYS_WRITE:
       printf("WRITE\n");
-      write(*(int*)f->esp+4, f->esp+8, *(char **)f->esp+12);
+      write(*(int*)f->esp+4, *(char **)f->esp+8, *(int*)f->esp+12);
       break;
     default:
       printf ("system call!\n");
@@ -83,7 +83,7 @@ void close(int fd){
 }
 
 int write(int fd, const void *buffer, unsigned size){
-  struct file *fil_ = thread_current()->fdtable[fd];
+  struct file *file = thread_current()->fdtable[fd];
 
   if(fd == 1){
     putbuf(buffer, size);
