@@ -13,6 +13,8 @@ void
 syscall_init (void)
 {
   intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
+  //thread_current()->fdtable[STDIN_FILENO] = ;
+  //thread_current()->fdtable[STDOUT_FILENO] = ;
 }
 
 static void
@@ -65,30 +67,29 @@ bool create(const char *file, unsigned initial_size){
 }
 
 int open(const char *file){
-  int fd;
-  for(int fd = 2; fd < 130; fd++){
-    if(thread_current()->fdtable[fd] == NULL){
+  int fd = -1;
+  for(int i = 2; i < 130; i++){
+    if(thread_current()->fdtable[i] == NULL){
+      fd = i;
       struct file *fil_ = filesys_open(file);
       thread_current()->fdtable[fd] = fil_;
-      if(thread_current()->fdtable[fd] == NULL){
-        fd = -1;
-      }
       break;
     }
   }
   return fd;
+
 }
 
 void close(int fd){
-  struct file *fil_ = thread_current()->fdtable[fd];
-  file_close(fil_);
+  struct file *file = thread_current()->fdtable[fd];
+  file_close(file);
   thread_current()->fdtable[fd] = NULL;
 }
 
 int write(int fd, const void *buffer, unsigned size){
   struct file *file = thread_current()->fdtable[fd];
 
-  if(fd == 1){
+  if(fd == STDOUT_FILENO){
     putbuf(buffer, size);
     return size;
   }
@@ -100,7 +101,7 @@ int write(int fd, const void *buffer, unsigned size){
 
 int read(int fd, void *buffer, unsigned size){
   struct file *file = thread_current()->fdtable[fd];
-  if(fd == 0){
+  if(fd == STDIN_FILENO){
     return size;
   }
   if(file == NULL){
