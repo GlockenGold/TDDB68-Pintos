@@ -15,7 +15,7 @@ void close(int fd);
 
 int read(int fd, void *buffer, unsigned size);
 
-//int write(fd, const void *buffer, unsigned size);
+int write(fd, const void *buffer, unsigned size);
 
 //void exit(int status);
 

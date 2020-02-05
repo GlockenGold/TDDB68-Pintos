@@ -43,6 +43,10 @@ syscall_handler (struct intr_frame *f UNUSED)
       printf("CLOSE");
       close(*(int *)f->esp+4);
       break;
+    case SYS_WRITE:
+      printf("WRITE");
+      write(*(int*)f->esp+4, f->esp+8, *(char **)f->esp+12);
+      break;
     default:
       printf ("system call!\n");
       thread_exit ();
@@ -76,6 +80,10 @@ void close(int fd){
   struct file *fil_ = thread_current()->fdtable[fd];
   file_close(fil_);
   thread_current()->fdtable[fd] = NULL;
+}
+
+int write(fd, const void *buffer, unsigned size){
+  return -1;
 }
 
 //void exit(int status){
