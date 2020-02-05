@@ -65,12 +65,14 @@ bool create(const char *file, unsigned initial_size){
 }
 
 int open(const char *file){
-  int fd = -1;
-  for(int i = 0; i < 128; i++){
-    if(thread_current()->fdtable[i] == NULL){
-      fd = i;
+  int fd;
+  for(int fd = 2; fd < 130; fd++){
+    if(thread_current()->fdtable[fd] == NULL){
       struct file *fil_ = filesys_open(file);
       thread_current()->fdtable[fd] = fil_;
+      if(thread_current()->fdtable[fd] == NULL){
+        fd = -1;
+      }
       break;
     }
   }
