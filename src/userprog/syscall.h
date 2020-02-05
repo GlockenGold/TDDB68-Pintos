@@ -17,6 +17,6 @@ int read(int fd, void *buffer, unsigned size);
 
 int write(int fd, const void *buffer, unsigned size);
 
-//void exit(int status);
+void exit(int status);
 
 #endif /* userprog/syscall.h */

@@ -23,21 +23,17 @@ syscall_handler (struct intr_frame *f UNUSED)
       printf("HALT\n");
       halt();
       break;
-    case SYS_EXIT:
-      printf("EXIT\n");
-      //exit();
-      break;
     case SYS_WAIT:
       printf("WAIT\n");
       //wait();
       break;
     case SYS_CREATE:
       printf("CREATE\n");
-      create(*(char **)f->esp+4, *(unsigned *)f->esp+8);
+      f->eax = create(*(char **)f->esp+4, *(unsigned *)f->esp+8);
       break;
     case SYS_OPEN:
       printf("OPEN\n");
-      open(*(char **)f->esp+4);
+      f->eax =open(*(char **)f->esp+4);
       break;
     case SYS_CLOSE:
       printf("CLOSE\n");
@@ -45,11 +41,12 @@ syscall_handler (struct intr_frame *f UNUSED)
       break;
     case SYS_WRITE:
       printf("WRITE\n");
-      write(*(int*)f->esp+4, *(char **)f->esp+8, *(int*)f->esp+12);
+      f->eax = write(*(int*)f->esp+4, *(char **)f->esp+8, *(unsigned*)f->esp+12);
       break;
+    case SYS_EXIT:
     default:
-      printf ("system call!\n");
-      thread_exit ();
+      printf ("EXIT\n");
+      exit(0);
       break;
     }
 }
@@ -95,3 +92,6 @@ int write(int fd, const void *buffer, unsigned size){
   return file_write(file, buffer, size);
 }
 
+void exit(int status){
+  thread_exit();
+}
