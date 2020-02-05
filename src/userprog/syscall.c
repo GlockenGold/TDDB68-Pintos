@@ -15,7 +15,7 @@ syscall_init (void)
 static void
 syscall_handler (struct intr_frame *f UNUSED)
 {
-  switch(*(int *)f->esp){
+  switch(*(uint32_t *)f->esp){
     case SYS_HALT:
       printf("HALT");
       halt();
@@ -30,18 +30,20 @@ syscall_handler (struct intr_frame *f UNUSED)
       break;
     case SYS_CREATE:
       printf("CREATE");
-      create();
+      f->eax = create(f->esp+4, f->esp+8);
       break;
     case SYS_OPEN:
       printf("OPEN");
-      open();
+      f->eax = open(f->esp+4);
       break;
     case SYS_CLOSE:
       printf("CLOSE");
       close();
       break;
-  printf ("system call!\n");
-  thread_exit ();
+    default:
+      printf ("system call!\n");
+      thread_exit ();
+      break;
 }
 
 void halt(void){
@@ -51,8 +53,6 @@ void halt(void){
 
 bool create(const char *file, unsigned initial_size){
   return filesys_create(file, size);
-    case 7:
-      break;
 }
 
 int open(const char *file){
