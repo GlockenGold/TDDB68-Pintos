@@ -3,6 +3,9 @@
 #include <syscall-nr.h>
 #include "threads/interrupt.h"
 #include "threads/thread.h"
+#include "threads/init.h"
+#include "filesys/filesys.h"
+#include "filesys/file.h"
 
 static void syscall_handler (struct intr_frame *);
 
@@ -22,28 +25,29 @@ syscall_handler (struct intr_frame *f UNUSED)
       break;
     case SYS_EXIT:
       printf("EXIT");
-      exit();
+      //exit();
       break;
     case SYS_WAIT:
       printf("WAIT");
-      wait();
+      //wait();
       break;
     case SYS_CREATE:
       printf("CREATE");
-      f->eax = create(f->esp+4, f->esp+8);
+      create(*(char **)f->esp+4, *(unsigned *)f->esp+8);
       break;
     case SYS_OPEN:
       printf("OPEN");
-      f->eax = open(f->esp+4);
+      open(*(char **)f->esp+4);
       break;
     case SYS_CLOSE:
       printf("CLOSE");
-      close();
+      close(*(int *)f->esp+4);
       break;
     default:
       printf ("system call!\n");
       thread_exit ();
       break;
+    }
 }
 
 void halt(void){
@@ -52,7 +56,7 @@ void halt(void){
 }
 
 bool create(const char *file, unsigned initial_size){
-  return filesys_create(file, size);
+  return filesys_create(file, initial_size);
 }
 
 int open(const char *file){
@@ -60,7 +64,8 @@ int open(const char *file){
   for(int i = 0; i < 128; i++){
     if(thread_current()->fdtable[i] == NULL){
       fd = i;
-      thread_current()->fdtable[fd] = filesys_open(file);
+      struct file *fil_ = filesys_open(file);
+      thread_current()->fdtable[fd] = fil_;
       break;
     }
   }
@@ -68,11 +73,11 @@ int open(const char *file){
 }
 
 void close(int fd){
-  struct file file = thread_current()->fdtable[fd];
-  file_close(file);
+  struct file *fil_ = thread_current()->fdtable[fd];
+  file_close(fil_);
   thread_current()->fdtable[fd] = NULL;
 }
 
-void exit(int status){
+//void exit(int status){
 
-}
+//}

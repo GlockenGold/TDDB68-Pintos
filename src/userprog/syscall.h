@@ -1,6 +1,8 @@
 #ifndef USERPROG_SYSCALL_H
 #define USERPROG_SYSCALL_H
 
+#include <stdbool.h>
+
 void syscall_init (void);
 
 void halt(void);
@@ -13,8 +15,8 @@ void close(int fd);
 
 int read(int fd, void *buffer, unsigned size);
 
-int write(fd, const void *buffer, unsigned size);
+//int write(fd, const void *buffer, unsigned size);
 
-void exit(int status);
+//void exit(int status);
 
 #endif /* userprog/syscall.h */
