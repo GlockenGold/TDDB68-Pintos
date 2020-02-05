@@ -92,9 +92,6 @@ int write(int fd, const void *buffer, unsigned size){
   if(file == NULL){
     return -1;
   }
-
+  return file_write(file, buffer, size);
 }
 
-//void exit(int status){
-
-//}
