@@ -95,3 +95,13 @@ int write(int fd, const void *buffer, unsigned size){
   return file_write(file, buffer, size);
 }
 
+int read(int fd, void *buffer, unsigned size){
+  struct file *file = thread_current()->fdtable[fd];
+  if(fd == 0){
+    return size;
+  }
+  if(file == NULL){
+    return -1;
+  }
+  return file_read(file, buffer, size);
+}
