@@ -73,6 +73,9 @@ int open(const char *file){
       fd = i;
       struct file *fil_ = filesys_open(file);
       thread_current()->fdtable[fd] = fil_;
+      if(fil_ == NULL){
+        return -1;
+      }
       break;
     }
   }
@@ -93,7 +96,7 @@ int write(int fd, const void *buffer, unsigned size){
     putbuf(buffer, size);
     return size;
   }
-  if(file == NULL){
+  if(file == NULL || fd == STDIN_FILENO){
     return -1;
   }
   return file_write(file, buffer, size);
@@ -102,9 +105,13 @@ int write(int fd, const void *buffer, unsigned size){
 int read(int fd, void *buffer, unsigned size){
   struct file *file = thread_current()->fdtable[fd];
   if(fd == STDIN_FILENO){
+    uint8_t *buff = (uint8_t*)buffer;
+    for(unsigned i = 0; i < size; i++){
+      buff[i] = input_getc();
+    }
     return size;
   }
-  if(file == NULL){
+  if(file == NULL || fd == STDOUT_FILENO){
     return -1;
   }
   return file_read(file, buffer, size);
