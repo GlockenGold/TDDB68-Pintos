@@ -6,6 +6,7 @@
 #include "threads/init.h"
 #include "filesys/filesys.h"
 #include "filesys/file.h"
+#include "devices/input.h"
 
 static void syscall_handler (struct intr_frame *);
 
@@ -118,5 +119,8 @@ int read(int fd, void *buffer, unsigned size){
 }
 
 void exit(int status){
+  for(int i = 2; i < 130; i++){
+    close(i);
+  }
   thread_exit();
 }
