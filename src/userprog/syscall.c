@@ -14,8 +14,6 @@ void
 syscall_init (void)
 {
   intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
-  //thread_current()->fdtable[STDIN_FILENO] = ;
-  //thread_current()->fdtable[STDOUT_FILENO] = ;
 }
 
 static void

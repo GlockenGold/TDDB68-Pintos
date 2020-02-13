@@ -7,6 +7,13 @@
 /* Number of timer interrupts per second. */
 #define TIMER_FREQ 100
 
+struct sleepthread {
+  int64_t start;
+  int64_t sleep_ticks;
+  struct semaphore *sema;
+  struct list_elem *elem;
+};
+
 void timer_init (void);
 void timer_calibrate (void);
 
@@ -19,5 +26,7 @@ void timer_usleep (int64_t microseconds);
 void timer_nsleep (int64_t nanoseconds);
 
 void timer_print_stats (void);
+
+bool sleep_time_compare(const struct list_elem *new_elem, const struct list_elem *old_elem, void *aux);
 
 #endif /* devices/timer.h */
