@@ -103,20 +103,18 @@ timer_sleep (int64_t ticks)
   ASSERT (intr_get_level () == INTR_ON);
   if(ticks > 0){
     int64_t start = timer_ticks ();
-    struct sleepthread sleepthread;
-    sema_init(sleepthread.sema, 0);
-    sleepthread.start = start;
-    sleepthread.sleep_ticks = ticks;
+    struct sleepthread *sleepthread;
+    sema_init(&sleepthread->sema, 0);
+    sleepthread->start = start;
+    sleepthread->sleep_ticks = ticks;
 
     enum intr_level old_level = intr_disable();
-    list_insert_ordered(&sleep_queue, (sleepthread->elem), sleep_time_compare, NULL);
-
+    list_insert_ordered(&sleep_queue, &(sleepthread->elem), sleep_time_compare, NULL);
     intr_set_level(old_level);
-
-    sema_down(sleepthread.sema);
+    sema_down(&sleepthread->sema);
+    
   }
 }
-
 /* Suspends execution for approximately MS milliseconds. */
 void
 timer_msleep (int64_t ms)
@@ -222,7 +220,7 @@ real_time_sleep (int64_t num, int32_t denom)
  * Returns true if new element has a shorter time left than the old element.
  */
 bool
-sleep_time_compare(const struct list_elem *new_elem, const struct list_elem *old_elem, void *aux){
+sleep_time_compare(const struct list_elem *new_elem, const struct list_elem *old_elem, void *aux UNUSED){
   struct sleepthread *old = list_entry(old_elem, struct sleepthread, elem);
   struct sleepthread *new = list_entry(new_elem, struct sleepthread, elem);
   return (old->sleep_ticks - timer_elapsed(old->start)) > (new->sleep_ticks - timer_elapsed(new->start));
