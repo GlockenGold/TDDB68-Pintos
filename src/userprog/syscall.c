@@ -21,36 +21,36 @@ syscall_handler (struct intr_frame *f UNUSED)
 {
   switch(*(uint32_t *)(f->esp)){
     case SYS_HALT:
-      printf("HALT\n");
+      //printf("HALT\n");
       halt();
       break;
     case SYS_WAIT:
-      printf("WAIT\n");
+      //printf("WAIT\n");
       //wait();
       break;
     case SYS_CREATE:
-      printf("CREATE\n");
+      //printf("CREATE\n");
       (f->eax) = create(*(char **)(f->esp+4), *(unsigned *)(f->esp+8));
       break;
     case SYS_OPEN:
-      printf("OPEN\n");
+      //printf("OPEN\n");
       (f->eax) =open(*(char **)(f->esp+4));
       break;
     case SYS_CLOSE:
-      printf("CLOSE\n");
+      //printf("CLOSE\n");
       close(*(int *)(f->esp+4));
       break;
     case SYS_WRITE:
-      printf("WRITE\n");
+      //printf("WRITE\n");
       (f->eax) = write(*(int*)(f->esp+4), *(char **)(f->esp+8), *(unsigned*)(f->esp+12));
       break;
     case SYS_READ:
-      printf("READ\n");
+      //printf("READ\n");
       (f->eax) = read(*(int*)(f->esp+4), *(char **)(f->esp+8), *(unsigned*)(f->esp+12));
       break;
     case SYS_EXIT:
     default:
-      printf ("EXIT\n");
+      //printf ("EXIT\n");
       exit(0);
       break;
     }
