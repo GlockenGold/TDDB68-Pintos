@@ -108,7 +108,8 @@ struct thread
   struct sleepthread {
     int64_t start;
     int64_t sleep_ticks;
-    struct semaphore sema;
+    struct thread *thread;
+    //struct semaphore sema;
     struct list_elem elem;
   };
 
