@@ -24,5 +24,6 @@ void timer_nsleep (int64_t nanoseconds);
 void timer_print_stats (void);
 
 bool sleep_time_compare(const struct list_elem *new_elem, const struct list_elem *old_elem, void *aux);
+void check_sleep_time(void);
 
 #endif /* devices/timer.h */
