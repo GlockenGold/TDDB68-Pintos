@@ -107,19 +107,15 @@ timer_sleep (int64_t ticks)
     int64_t start = timer_ticks();
     struct sleepthread sleepthread;
 
-    //struct semaphore sema;
-    //sema_init(&sema, 0);
+    struct semaphore sema;
+    sema_init(&sema, 0);
 
-    //sleepthread.sema = sema;
+    sleepthread.sema = &sema;
     sleepthread.start = start;
     sleepthread.sleep_ticks = ticks;
-    sleepthread.thread = thread_current();
-    //printf("start: %"PRId64"\n", sleepthread.start);
-    //printf("sleep ticks: %"PRId64"\n", sleepthread.sleep_ticks);
 
     list_insert_ordered(&sleep_queue, &(sleepthread.elem), sleep_time_compare, NULL);
-    thread_block();
-    //sema_down(&sleepthread.sema);
+    sema_down(sleepthread.sema);
     intr_set_level(old_level);
   }
 }
@@ -169,11 +165,9 @@ void check_sleep_time(void) {
   if(list_empty(&sleep_queue)) return;
 
   struct sleepthread *first = (list_entry(list_front(&sleep_queue), struct sleepthread, elem));
-  //printf("time elapsed %"PRId64"", timer_elapsed(first->start));
-  //printf(" out of %"PRId64" ticks\n", first->sleep_ticks);
+
   if(timer_elapsed(first->start) >= first->sleep_ticks){
-    thread_unblock(first->thread);
-    //sema_up(&first->sema);
+    sema_up(first->sema);
     list_pop_front(&sleep_queue);
     check_sleep_time();
   }
