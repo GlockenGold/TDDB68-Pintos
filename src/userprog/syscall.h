@@ -5,6 +5,10 @@
 
 void syscall_init (void);
 
+typedef int pid_t;
+
+pid_t exec (const char *cmd_line);
+
 void halt(void);
 
 bool create(const char *file, unsigned initial_size);

@@ -101,6 +101,9 @@ struct thread
     /* Lägg in file descriptor table här*/
 #endif
 
+    struct parent_child *parent;
+    struct list children;
+
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
   };
@@ -109,6 +112,13 @@ struct thread
     int64_t start;
     int64_t sleep_ticks;
     struct semaphore *sema;
+    struct list_elem elem;
+  };
+
+  struct parent_child {
+    tid_t child;
+    int exit_status;
+    int alive_count;
     struct list_elem elem;
   };
 

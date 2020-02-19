@@ -48,6 +48,9 @@ syscall_handler (struct intr_frame *f UNUSED)
       //printf("READ\n");
       (f->eax) = read(*(int*)(f->esp+4), *(char **)(f->esp+8), *(unsigned*)(f->esp+12));
       break;
+    case SYS_EXEC:
+      (f->eax) = (pid_t) exec(*(const char**)(f->esp+4));
+      break;
     case SYS_EXIT:
     default:
       //printf ("EXIT\n");
@@ -55,6 +58,12 @@ syscall_handler (struct intr_frame *f UNUSED)
       break;
     }
 }
+
+pid_t exec (const char *cmd_line){
+
+
+}
+
 
 void halt(void){
   printf("power off\n");
@@ -117,6 +126,7 @@ int read(int fd, void *buffer, unsigned size){
 }
 
 void exit(int status){
+  //printf("%s: exit(%d)\n", thread->name, thread->exit_status);
   for(int i = 2; i < 130; i++){
     close(i);
   }
