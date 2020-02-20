@@ -5,7 +5,7 @@ SRCDIR = ..
 # and then add a name_SRC line that lists its source files.
 PROGS = cat cmp cp echo halt hex-dump ls mcat mcp mkdir pwd rm shell \
 	bubsort insult lineup matmult recursor \
-	sumargv lab2test lab1test lab1test2 pfs pfs_reader pfs_writer dummy longrun \
+	sumargv lab2test lab1test lab1test2 lab3test1 lab3test2 lab4test1 pfs pfs_reader pfs_writer dummy longrun \
 	child parent create-bad printf
 
 # Added test programs
@@ -14,6 +14,9 @@ sumargv_SRC = sumargv.c
 lab2test_SRC = lab2test.c
 lab1test_SRC = lab1test.c
 lab1test2_SRC = lab1test2.c
+lab3test1_SRC = lab3test1.c
+lab3test2_SRC = lab3test2.c
+lab4test1_SRC = lab4test1.c
 pfs_SRC = pfs.c
 pfs_reader_SRC = pfs_reader.c
 pfs_writer_SRC = pfs_writer.c
