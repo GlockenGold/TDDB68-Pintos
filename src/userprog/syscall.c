@@ -54,14 +54,14 @@ syscall_handler (struct intr_frame *f UNUSED)
     case SYS_EXIT:
     default:
       //printf ("EXIT\n");
-      exit(0);
+      exit(*(int *)(f->esp+4));
       break;
     }
 }
 
 pid_t exec (const char *cmd_line){
-
-
+  pid_t pid = process_execute(cmd_line);
+  return pid;
 }
 
 
@@ -126,9 +126,10 @@ int read(int fd, void *buffer, unsigned size){
 }
 
 void exit(int status){
-  //printf("%s: exit(%d)\n", thread->name, thread->exit_status);
+  //printf("%s: exit(%d)\n", thread->name, thread->parent->exit_status);
   for(int i = 2; i < 130; i++){
     close(i);
   }
+  thread_current()->parent->exit_status() = status;
   thread_exit();
 }
