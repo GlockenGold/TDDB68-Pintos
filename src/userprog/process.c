@@ -44,6 +44,9 @@ process_execute (const char *file_name)
   struct parent_child *child = (struct parent_child*) malloc(sizeof(struct parent_child));
   struct semaphore sema;
   sema_init(&sema, 0);
+  struct lock alive_lock;
+  lock_init(&alive_lock);
+  child->alive_lock = &alive_lock;
   child->wait_sema = &sema;
   child->file_name = fn_copy;
   proc_args->parent = child;
@@ -57,7 +60,9 @@ process_execute (const char *file_name)
   }
   else
   {
+    lock_acquire(child->alive_lock);
     child->alive_count = 2;
+    lock_release(child->alive_lock);
     list_push_back(&(thread_current()->children), &(child->elem));
     sema_down(child->wait_sema);
   }
@@ -130,11 +135,14 @@ process_exit (void)
   }
   else if(parent != NULL){
     // If current thread is not initial thread
+    lock_acquire((parent->alive_lock));
     parent->alive_count--;
     if(parent->alive_count == 0){
+      lock_release((parent->alive_lock));
       free(parent);
     }
     else {
+      lock_release((parent->alive_lock));
       sema_up(parent->wait_sema);
     }
   }
