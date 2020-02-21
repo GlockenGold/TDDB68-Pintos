@@ -119,6 +119,8 @@ struct thread
     tid_t child;
     int exit_status;
     int alive_count;
+    char *file_name;
+    struct semaphore *wait_sema;
     struct list_elem elem;
   };
 

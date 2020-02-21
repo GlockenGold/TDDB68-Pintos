@@ -38,21 +38,45 @@ process_execute (const char *file_name)
     return TID_ERROR;
   strlcpy (fn_copy, file_name, PGSIZE);
 
+  struct process_args *proc_args = (struct process_args*) malloc(sizeof(struct process_args));
+  proc_args->file_name = fn_copy;
+
+  struct parent_child *child = (struct parent_child*) malloc(sizeof(struct parent_child));
+  struct semaphore sema;
+  sema_init(&sema, 0);
+  child->wait_sema = &sema;
+  child->file_name = fn_copy;
+  proc_args->parent = child;
+  //child->exit_status = -1;
   /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
-  if (tid == TID_ERROR)
+
+  tid = thread_create (file_name, PRI_DEFAULT, start_process, proc_args);
+  if (tid == TID_ERROR){
     palloc_free_page (fn_copy);
+    free(child);
+  }
+  else
+  {
+    child->alive_count = 2;
+    list_push_back(&(thread_current()->children), &(child->elem));
+    sema_down(child->wait_sema);
+  }
+  child->child = tid;
+  free(proc_args);
   return tid;
 }
 
 /* A thread function that loads a user process and starts it
    running. */
 static void
-start_process (void *file_name_)
+start_process (void *pr_args)
 {
-  char *file_name = file_name_;
+  char *file_name = ((struct process_args*) pr_args)->file_name;
   struct intr_frame if_;
   bool success;
+
+  struct process_args *proc_args = ((struct process_args*) pr_args);
+  thread_current()->parent = proc_args->parent;
 
   /* Initialize interrupt frame and load executable. */
   memset (&if_, 0, sizeof if_);
@@ -98,6 +122,30 @@ process_exit (void)
 {
   struct thread *cur = thread_current ();
   uint32_t *pd;
+  struct parent_child* parent = cur->parent;
+
+  if(parent != NULL && parent->child == -1){
+    // Child was not loaded correctly
+    free(parent);
+  }
+  else if(parent != NULL){
+    // If current thread is not initial thread
+    parent->alive_count--;
+    if(parent->alive_count == 0){
+      free(parent);
+    }
+    else {
+      sema_up(parent->wait_sema);
+    }
+  }
+  while(!list_empty(&cur->children)){
+    struct list_elem *front = list_pop_front(&(cur->children));
+    struct parent_child *child = list_entry(front, struct parent_child, elem);
+    child->alive_count--;
+    if(child->alive_count == 0){
+      free(child);
+    }
+  }
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
