@@ -287,7 +287,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
    /* Uncomment the following line to print some debug
      information. This will be useful when you debug the program
      stack.*/
-/*#define STACK_DEBUG*/
+#define STACK_DEBUG
 
 #ifdef STACK_DEBUG
   printf("*esp is %p\nstack contents:\n", *esp);
@@ -534,12 +534,13 @@ setup_stack (void **esp)
     {
       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
       if (success)
+      {
         *esp = PHYS_BASE;  // Remove -12 when argument passing is implemented
 
-        struct process_args proc_args = thread_current()->proc_args;
+        struct process_args *proc_args = thread_current()->proc_args;
         void *ptr = *esp;
         char *argv[32];
-        int argc;
+        int argc = 0;
         char *token, *save_ptr;
         char *cmd_line = proc_args->file_name;
 
@@ -559,11 +560,19 @@ setup_stack (void **esp)
           argv[argc] = NULL;
 
           // Allign word to make stack divisible by 4
-          while((int)p % 4 != 0){
+          while((int)ptr % 4 != 0){
             ptr--;
           }
 
-          
+          char **argvptr;
+          int i;
+          for(i=argc; i>=0; i--;){
+            ptr -= sizeof(char*);
+            memcpy(ptr, &(argv[i]), sizeof(char*));
+            argvptr = ptr;
+          }
+
+      }
       else
         palloc_free_page (kpage);
     }
