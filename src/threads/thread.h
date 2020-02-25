@@ -97,12 +97,10 @@ struct thread
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
-    struct file *fdtable[130];
-    /* Lägg in file descriptor table här*/
+    struct file *fdtable[130];          /* File directory table. */
 #endif
 
     struct parent_child *parent;
-    struct process_args *proc_args;
     struct list children;
 
     /* Owned by thread.c. */

@@ -284,6 +284,53 @@ load (const char *file_name, void (**eip) (void), void **esp)
     goto done;
   }
 
+  void *ptr = *esp;
+  char *argv[32];
+  int argc = 0;
+  char *token, *save_ptr;
+  // #TODO: FIXA cmd_line
+  char *cmd_line = file_name;
+  printf("cmd_line %s\n", cmd_line);
+
+  for(token = strtok_r(cmd_line, " ", &save_ptr); token != NULL;
+      token = strtok_r(NULL, " ", &save_ptr))
+      {
+        // change pointer to overwrite top element in stack, +1 to account for \0 (I think)
+        ptr -= strlen(token) +1;
+        // Copy contents of token onto the stack
+        memcpy(ptr, token, strlen(token)+1);
+        argv[argc] = ptr;
+        argc++;
+        if(argc == 31) break;
+      }
+    // Setting last element to NULL
+    argv[argc] = NULL;
+
+    // Allign word to make stack divisible by 4
+    while((int)ptr % 4 != 0){
+      ptr--;
+    }
+
+    char **argvptr;
+    int j;
+    for(j=argc; j>=0; j--){
+      ptr -= sizeof(char*);
+      memcpy(ptr, &(argv[j]), sizeof(char*));
+      argvptr = ptr;
+    }
+    ptr -= sizeof(char**);
+    memcpy(ptr, &argvptr, sizeof(char**));
+
+    ptr -= sizeof(int);
+    memcpy(ptr, &argc, sizeof(int));
+
+    // Push fake return address, in accorande with Pintos documentation
+    void *dummy;
+    ptr -= sizeof(dummy);
+    memcpy(ptr, &dummy, sizeof(dummy));
+
+    *esp = (void *) ptr;
+
    /* Uncomment the following line to print some debug
      information. This will be useful when you debug the program
      stack.*/
@@ -536,41 +583,6 @@ setup_stack (void **esp)
       if (success)
       {
         *esp = PHYS_BASE;  // Remove -12 when argument passing is implemented
-
-        struct process_args *proc_args = thread_current()->proc_args;
-        void *ptr = *esp;
-        char *argv[32];
-        int argc = 0;
-        char *token, *save_ptr;
-        char *cmd_line = proc_args->file_name;
-
-        for(token = strtok_r(cmd_line, " ", &save_ptr); token != NULL;
-            token = strtok_r(NULL, " ", &save_ptr))
-            {
-              // change pointer to overwrite top element in stack, +1 to account for \0 (I think)
-              ptr -= strlen(token) +1;
-              // Copy contents of token onto the stack
-              memcpy(ptr, token, strlen(token)+1);
-              argv[argc] = ptr;
-              argc++;
-              if(argc == 31) break;
-
-            }
-          // Setting last element to NULL
-          argv[argc] = NULL;
-
-          // Allign word to make stack divisible by 4
-          while((int)ptr % 4 != 0){
-            ptr--;
-          }
-
-          char **argvptr;
-          int i;
-          for(i=argc; i>=0; i--;){
-            ptr -= sizeof(char*);
-            memcpy(ptr, &(argv[i]), sizeof(char*));
-            argvptr = ptr;
-          }
 
       }
       else
