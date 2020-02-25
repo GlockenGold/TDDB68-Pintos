@@ -121,6 +121,7 @@ struct thread
     int exit_status;
     int alive_count;
     char *file_name;
+    bool created;
     struct semaphore *wait_sema;
     struct lock *alive_lock;
     struct list_elem elem;

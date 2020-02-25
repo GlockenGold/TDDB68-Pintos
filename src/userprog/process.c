@@ -38,9 +38,6 @@ process_execute (const char *file_name)
     return TID_ERROR;
   strlcpy (fn_copy, file_name, PGSIZE);
 
-  struct process_args *proc_args = (struct process_args*) malloc(sizeof(struct process_args));
-  proc_args->file_name = fn_copy;
-
   struct parent_child *child = (struct parent_child*) malloc(sizeof(struct parent_child));
   struct semaphore sema;
   sema_init(&sema, 0);
@@ -49,11 +46,10 @@ process_execute (const char *file_name)
   child->alive_lock = &alive_lock;
   child->wait_sema = &sema;
   child->file_name = fn_copy;
-  proc_args->parent = child;
   //child->exit_status = -1;
   /* Create a new thread to execute FILE_NAME. */
 
-  tid = thread_create (file_name, PRI_DEFAULT, start_process, proc_args);
+  tid = thread_create (file_name, PRI_DEFAULT, start_process, child);
   if (tid == TID_ERROR){
     palloc_free_page (fn_copy);
     free(child);
@@ -66,8 +62,10 @@ process_execute (const char *file_name)
     list_push_back(&(thread_current()->children), &(child->elem));
     sema_down(child->wait_sema);
   }
+  if(!child->created){
+    tid = TID_ERROR;
+  }
   child->child = tid;
-  free(proc_args);
   return tid;
 }
 
@@ -76,13 +74,13 @@ process_execute (const char *file_name)
 static void
 start_process (void *pr_args)
 {
-  char *file_name = ((struct process_args*) pr_args)->file_name;
+  char *file_name = ((struct parent_child*) pr_args)->file_name;
   struct intr_frame if_;
   bool success;
 
-  struct process_args *proc_args = ((struct process_args*) pr_args);
-  thread_current()->parent = proc_args->parent;
-  thread_current()->proc_args = proc_args;
+  struct parent_child *parent = ((struct parent_child*) pr_args);
+  thread_current()->parent = parent;
+  parent->created = true;
 
   /* Initialize interrupt frame and load executable. */
   memset (&if_, 0, sizeof if_);
@@ -93,8 +91,10 @@ start_process (void *pr_args)
 
   /* If load failed, quit. */
   palloc_free_page (file_name);
-  if (!success)
+  if (!success){
+    parent->created = false;
     thread_exit ();
+  }
 
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in

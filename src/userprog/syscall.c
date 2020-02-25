@@ -130,9 +130,7 @@ void exit(int status){
   for(int i = 2; i < 130; i++){
     close(i);
   }
-  //if(thread_current()->parent != NULL){
-    thread_current()->parent->exit_status = status;
-    printf("%s: exit(%d)\n", thread_current()->name, thread_current()->parent->exit_status);
-  //}
+  thread_current()->parent->exit_status = status;
+  printf("%s: exit(%d)\n", thread_current()->name, thread_current()->parent->exit_status);
   thread_exit();
 }
