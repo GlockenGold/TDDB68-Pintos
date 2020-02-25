@@ -102,6 +102,7 @@ struct thread
 #endif
 
     struct parent_child *parent;
+    struct process_args *proc_args;
     struct list children;
 
     /* Owned by thread.c. */

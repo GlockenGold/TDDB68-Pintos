@@ -82,6 +82,7 @@ start_process (void *pr_args)
 
   struct process_args *proc_args = ((struct process_args*) pr_args);
   thread_current()->parent = proc_args->parent;
+  thread_current()->proc_args = proc_args;
 
   /* Initialize interrupt frame and load executable. */
   memset (&if_, 0, sizeof if_);
@@ -533,7 +534,36 @@ setup_stack (void **esp)
     {
       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
       if (success)
-        *esp = PHYS_BASE - 12;  // Remove -12 when argument passing is implemented
+        *esp = PHYS_BASE;  // Remove -12 when argument passing is implemented
+
+        struct process_args proc_args = thread_current()->proc_args;
+        void *ptr = *esp;
+        char *argv[32];
+        int argc;
+        char *token, *save_ptr;
+        char *cmd_line = proc_args->file_name;
+
+        for(token = strtok_r(cmd_line, " ", &save_ptr); token != NULL;
+            token = strtok_r(NULL, " ", &save_ptr))
+            {
+              // change pointer to overwrite top element in stack, +1 to account for \0 (I think)
+              ptr -= strlen(token) +1;
+              // Copy contents of token onto the stack
+              memcpy(ptr, token, strlen(token)+1);
+              argv[argc] = ptr;
+              argc++;
+              if(argc == 31) break;
+
+            }
+          // Setting last element to NULL
+          argv[argc] = NULL;
+
+          // Allign word to make stack divisible by 4
+          while((int)p % 4 != 0){
+            ptr--;
+          }
+
+          
       else
         palloc_free_page (kpage);
     }
