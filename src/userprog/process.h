@@ -4,10 +4,6 @@
 #include "threads/thread.h"
 #include "threads/malloc.h"
 
-struct process_args{
-  char *file_name;
-  struct parent_child *parent;
-};
 
 tid_t process_execute (const char *file_name);
 int process_wait (tid_t);
