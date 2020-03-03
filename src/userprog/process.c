@@ -48,8 +48,10 @@ process_execute (const char *file_name)
   child->file_name = fn_copy;
   //child->exit_status = -1;
   /* Create a new thread to execute FILE_NAME. */
+  char *save_ptr;
+  char *file_name_token = strtok_r(file_name, " ", &save_ptr);
 
-  tid = thread_create (file_name, PRI_DEFAULT, start_process, child);
+  tid = thread_create (file_name_token, PRI_DEFAULT, start_process, child);
   if (tid == TID_ERROR){
     palloc_free_page (fn_copy);
     free(child);
@@ -116,10 +118,34 @@ start_process (void *pr_args)
    This function will be implemented in problem 2-2.  For now, it
    does nothing. */
 int
-process_wait (tid_t child_tid UNUSED)
+process_wait (tid_t child_tid)
 {
-  while(true){}
-  return -1;
+  int exit_status = -1;
+  struct list_elem *elem;
+  struct thread *t = thread_current();
+  for(elem = list_begin(&t->children); elem != list_end(&t->children); elem = list_next(elem)){
+    struct parent_child *child = list_entry(elem, struct parent_child, elem);
+    if(child->child == child_tid){
+      // Acquire lock to make sure pintos doesn't leak memory when checking alive count
+      lock_acquire(child->alive_lock);
+      if(child->alive_count == 1){
+        // Child is dead, set exit status
+        lock_release(child->alive_lock);
+        exit_status = child->exit_status;
+      }
+      else {
+        /* Child is still executing, down semaphore and wait for child to terminate
+        and set exit status */
+        lock_release(child->alive_lock);
+        sema_down(child->wait_sema);
+        exit_status = child->exit_status;
+      }
+      // Set childs exit status to -1 so future calls to wait will stop immediately
+      child->exit_status = -1;
+      break;
+    }
+  }
+  return exit_status;
 }
 
 /* Free the current process's resources. */
@@ -290,7 +316,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
   char *token, *save_ptr;
   // #TODO: FIXA cmd_line
   char *cmd_line = file_name;
-  printf("cmd_line %s\n", cmd_line);
+  //printf("cmd_line %s\n", cmd_line);
 
   for(token = strtok_r(cmd_line, " ", &save_ptr); token != NULL;
       token = strtok_r(NULL, " ", &save_ptr))
@@ -334,7 +360,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
    /* Uncomment the following line to print some debug
      information. This will be useful when you debug the program
      stack.*/
-#define STACK_DEBUG
+//#define STACK_DEBUG
 
 #ifdef STACK_DEBUG
   printf("*esp is %p\nstack contents:\n", *esp);
