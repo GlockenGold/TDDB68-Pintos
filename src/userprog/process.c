@@ -46,14 +46,24 @@ process_execute (const char *file_name)
   child->alive_lock = &alive_lock;
   child->wait_sema = &sema;
   child->file_name = fn_copy;
-  //child->exit_status = -1;
+  child->exit_status = -1;
   /* Create a new thread to execute FILE_NAME. */
+
+  /* Make another copy of FILE_NAME.
+     Otherwise it crashes when trying to tokenize FILE_NAME.*/
+  char *file_name_copy;
+  file_name_copy = palloc_get_page (0);
+  if (file_name_copy == NULL)
+    return TID_ERROR;
+  strlcpy (file_name_copy, file_name, PGSIZE);
+
   char *save_ptr;
-  char *file_name_token = strtok_r(file_name, " ", &save_ptr);
+  char *file_name_token = strtok_r(file_name_copy, " ", &save_ptr);
 
   tid = thread_create (file_name_token, PRI_DEFAULT, start_process, child);
   if (tid == TID_ERROR){
     palloc_free_page (fn_copy);
+    palloc_free_page (file_name_copy);
     free(child);
   }
   else
@@ -127,16 +137,16 @@ process_wait (tid_t child_tid)
     struct parent_child *child = list_entry(elem, struct parent_child, elem);
     if(child->child == child_tid){
       // Acquire lock to make sure pintos doesn't leak memory when checking alive count
-      lock_acquire(child->alive_lock);
+      // lock_acquire(child->alive_lock);
       if(child->alive_count == 1){
         // Child is dead, set exit status
-        lock_release(child->alive_lock);
+        // lock_release(child->alive_lock);
         exit_status = child->exit_status;
       }
       else {
         /* Child is still executing, down semaphore and wait for child to terminate
         and set exit status */
-        lock_release(child->alive_lock);
+        // lock_release(child->alive_lock);
         sema_down(child->wait_sema);
         exit_status = child->exit_status;
       }

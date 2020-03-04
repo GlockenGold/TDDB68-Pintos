@@ -34,30 +34,37 @@ syscall_handler (struct intr_frame *f UNUSED)
       break;
     case SYS_CREATE:
       //printf("CREATE\n");
+      validate_args(2, f->esp);
       (f->eax) = create(*(char **)(f->esp+4), *(unsigned *)(f->esp+8));
       break;
     case SYS_OPEN:
       //printf("OPEN\n");
+      validate_args(1, f->esp);
       (f->eax) =open(*(char **)(f->esp+4));
       break;
     case SYS_CLOSE:
       //printf("CLOSE\n");
+      validate_args(1, f->esp);
       close(*(int *)(f->esp+4));
       break;
     case SYS_WRITE:
       //printf("WRITE\n");
+      validate_args(3, f->esp);
       (f->eax) = write(*(int*)(f->esp+4), *(char **)(f->esp+8), *(unsigned*)(f->esp+12));
       break;
     case SYS_READ:
       //printf("READ\n");
+      validate_args(3, f->esp);
       (f->eax) = read(*(int*)(f->esp+4), *(char **)(f->esp+8), *(unsigned*)(f->esp+12));
       break;
     case SYS_EXEC:
+      validate_args(1, f->esp);
       (f->eax) = (pid_t) exec(*(const char**)(f->esp+4));
       break;
     case SYS_EXIT:
     default:
       //printf ("EXIT\n");
+      validate_args(1, f->esp);
       exit(*(int *)(f->esp+4));
       break;
     }
@@ -106,22 +113,22 @@ void close(int fd){
 
 int write(int fd, const void *buffer, unsigned size){
   if(!is_valid_buff(buffer, size)) exit(-1);
-  struct file *file = thread_current()->fdtable[fd];
 
   if(fd == STDOUT_FILENO){
     putbuf(buffer, size);
     return size;
   }
-  if(file == NULL || fd == STDIN_FILENO){
-    return -1;
+  if(!is_valid_fd(fd)){
+    exit(-1);
   }
+  struct file *file = thread_current()->fdtable[fd];
+  if(file == NULL) exit(-1);
   return file_write(file, buffer, size);
 }
 
 int read(int fd, void *buffer, unsigned size){
   if(!is_valid_buff(buffer, size)) exit(-1);
 
-  struct file *file = thread_current()->fdtable[fd];
   if(fd == STDIN_FILENO){
     uint8_t *buff = (uint8_t*)buffer;
     for(unsigned i = 0; i < size; i++){
@@ -129,9 +136,11 @@ int read(int fd, void *buffer, unsigned size){
     }
     return size;
   }
-  if(file == NULL || fd == STDOUT_FILENO){
-    return -1;
+  if(!is_valid_fd(fd)){
+    exit(-1);
   }
+  struct file *file = thread_current()->fdtable[fd];
+  if(file == NULL) exit(-1);
   return file_read(file, buffer, size);
 }
 
@@ -146,6 +155,16 @@ void exit(int status){
   thread_current()->parent->exit_status = status;
   printf("%s: exit(%d)\n", thread_current()->name, thread_current()->parent->exit_status);
   thread_exit();
+}
+
+
+bool validate_args(int nr_args, void *esp){
+  int i;
+  int *p;
+  for(i=0; i < nr_args; i++){
+    p = (int*) esp +1 +i;
+    if(!is_valid_ptr(p)) exit(-1);
+  }
 }
 
 /*

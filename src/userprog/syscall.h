@@ -25,6 +25,8 @@ int wait(pid_t pid);
 
 void exit(int status);
 
+bool validate_args(int nr_args, void *esp);
+
 bool is_valid_fd(int fd);
 
 bool is_valid_ptr(const void *ptr);
