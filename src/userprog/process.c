@@ -140,7 +140,7 @@ process_wait (tid_t child_tid)
       // lock_acquire(child->alive_lock);
       if(child->alive_count == 1){
         // Child is dead, set exit status
-        // lock_release(child->alive_lock);
+        // lock_release(child->alive_lock); // Koden crashar här om locks används
         exit_status = child->exit_status;
       }
       else {

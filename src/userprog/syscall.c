@@ -30,48 +30,51 @@ syscall_handler (struct intr_frame *f UNUSED)
       break;
     case SYS_WAIT:
       //printf("WAIT\n");
+      if(!is_valid_ptr((pid_t *)(f->esp+4))) exit(-1);
       (f->eax) = wait(*(pid_t *)(f->esp+4));
       break;
     case SYS_CREATE:
       //printf("CREATE\n");
-      validate_args(2, f->esp);
+      if(!is_valid_string(*(char **)(f->esp+4))) exit(-1);
+      if(!is_valid_ptr((unsigned *)(f->esp+8))) exit(-1);
       (f->eax) = create(*(char **)(f->esp+4), *(unsigned *)(f->esp+8));
       break;
     case SYS_OPEN:
       //printf("OPEN\n");
-      validate_args(1, f->esp);
+      if(!is_valid_string(*(char **)(f->esp+4))) exit(-1);
       (f->eax) =open(*(char **)(f->esp+4));
       break;
     case SYS_CLOSE:
       //printf("CLOSE\n");
-      validate_args(1, f->esp);
+      if(!is_valid_fd(*(int*)(f->esp+4))) exit(-1);
       close(*(int *)(f->esp+4));
       break;
     case SYS_WRITE:
       //printf("WRITE\n");
-      validate_args(3, f->esp);
+      if(!is_valid_ptr((int*)(f->esp+4))) exit(-1);
+      if(!is_valid_buff(*(char**)(f->esp+8), *(unsigned*)(f->esp+12))) exit(-1);
       (f->eax) = write(*(int*)(f->esp+4), *(char **)(f->esp+8), *(unsigned*)(f->esp+12));
       break;
     case SYS_READ:
       //printf("READ\n");
-      validate_args(3, f->esp);
+      if(!is_valid_ptr((int*)(f->esp+4))) exit(-1);
+      if(!is_valid_buff(*(char**)(f->esp+8), *(unsigned*)(f->esp+12))) exit(-1);
       (f->eax) = read(*(int*)(f->esp+4), *(char **)(f->esp+8), *(unsigned*)(f->esp+12));
       break;
     case SYS_EXEC:
-      validate_args(1, f->esp);
+      if(!is_valid_string(*(char **)(f->esp+4))) exit(-1);
       (f->eax) = (pid_t) exec(*(const char**)(f->esp+4));
       break;
     case SYS_EXIT:
     default:
       //printf ("EXIT\n");
-      validate_args(1, f->esp);
+      if(!is_valid_ptr((int*)(f->esp+4))) exit(-1);
       exit(*(int *)(f->esp+4));
       break;
     }
 }
 
 pid_t exec (const char *cmd_line){
-  if(!is_valid_string(cmd_line)) exit(-1);
   pid_t pid = process_execute(cmd_line);
   return pid;
 }
@@ -82,12 +85,10 @@ void halt(void){
 }
 
 bool create(const char *file, unsigned initial_size){
-  if(!is_valid_string(file)) exit(-1);
   return filesys_create(file, initial_size);
 }
 
 int open(const char *file){
-  if(!is_valid_string(file)) exit(-1);
   int fd = -1;
   for(int i = 2; i < 130; i++){
     if(thread_current()->fdtable[i] == NULL){
@@ -105,14 +106,12 @@ int open(const char *file){
 }
 
 void close(int fd){
-  if(!is_valid_fd(fd)) exit(-1);
   struct file *file = thread_current()->fdtable[fd];
   file_close(file);
   thread_current()->fdtable[fd] = NULL;
 }
 
 int write(int fd, const void *buffer, unsigned size){
-  if(!is_valid_buff(buffer, size)) exit(-1);
 
   if(fd == STDOUT_FILENO){
     putbuf(buffer, size);
@@ -127,7 +126,6 @@ int write(int fd, const void *buffer, unsigned size){
 }
 
 int read(int fd, void *buffer, unsigned size){
-  if(!is_valid_buff(buffer, size)) exit(-1);
 
   if(fd == STDIN_FILENO){
     uint8_t *buff = (uint8_t*)buffer;
@@ -157,16 +155,7 @@ void exit(int status){
   thread_exit();
 }
 
-
-bool validate_args(int nr_args, void *esp){
-  int i;
-  int *p;
-  for(i=0; i < nr_args; i++){
-    p = (int*) esp +1 +i;
-    if(!is_valid_ptr(p)) exit(-1);
-  }
-}
-
+// LAB 5 Input Validation
 /*
   Makes sure that the file descriptor table isn't full. STDIN and STDOUT are
   not checked.
@@ -185,9 +174,10 @@ bool is_valid_ptr(const void *ptr){
 }
 
 /*
-  Makes sure all possible points in buff for size are valid
+  Makes sure all possible pointers in buff for size are valid
 */
 bool is_valid_buff(const void *buff, unsigned size){
+  // if(!is_valid_ptr(buff) || !is_valid_ptr((void*)size)) return false;
   if (buff == NULL) return false;
   unsigned b = (unsigned) buff;
   unsigned i;
