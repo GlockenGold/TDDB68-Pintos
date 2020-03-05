@@ -62,7 +62,7 @@ syscall_handler (struct intr_frame *f UNUSED)
       (f->eax) = read(*(int*)(f->esp+4), *(char **)(f->esp+8), *(unsigned*)(f->esp+12));
       break;
     case SYS_SEEK:
-      if(!is_valid_ptr(*(unsigned*)(f->esp+8))) exit(-1);
+      if(!is_valid_ptr((unsigned*)(f->esp+8))) exit(-1);
       seek(*(int*)(f->esp+4), *(unsigned*)(f->esp+8));
     case SYS_TELL:
       (f->eax) = tell(*(int*)(f->esp+4));
@@ -131,7 +131,7 @@ void seek(int fd, unsigned position){
 
 unsigned tell(int fd){
   struct file *file = thread_current()->fdtable[fd];
-  file_tell(file);
+  return file_tell(file);
 }
 
 int filesize(int fd){
@@ -171,7 +171,10 @@ int read(int fd, void *buffer, unsigned size){
   }
   struct file *file = thread_current()->fdtable[fd];
   if(file == NULL) exit(-1);
-  return file_read(file, buffer, size);
+  file_deny_write(file);
+  int read_text = file_read(file, buffer, size);
+  file_allow_write(file);
+  return read_text;
 }
 
 int wait(pid_t pid){
