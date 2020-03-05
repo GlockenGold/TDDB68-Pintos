@@ -324,9 +324,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
   char *argv[32];
   int argc = 0;
   char *token, *save_ptr;
-  // #TODO: FIXA cmd_line
   char *cmd_line = file_name;
-  //printf("cmd_line %s\n", cmd_line);
 
   for(token = strtok_r(cmd_line, " ", &save_ptr); token != NULL;
       token = strtok_r(NULL, " ", &save_ptr))
