@@ -125,17 +125,17 @@ void close(int fd){
 }
 
 void seek(int fd, unsigned position){
-  struct file file = thread_current()->fdtable[fd];
+  struct file *file = thread_current()->fdtable[fd];
   file_seek(file, position);
 }
 
 unsigned tell(int fd){
-  struct file file = thread_current()->fdtable[fd];
+  struct file *file = thread_current()->fdtable[fd];
   file_tell(file);
 }
 
 int filesize(int fd){
-  struct file file = thread_current()->fdtable[fd];
+  struct file *file = thread_current()->fdtable[fd];
   return file_length(file);
 }
 
