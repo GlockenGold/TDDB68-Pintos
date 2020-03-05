@@ -61,6 +61,20 @@ syscall_handler (struct intr_frame *f UNUSED)
       if(!is_valid_buff(*(char**)(f->esp+8), *(unsigned*)(f->esp+12))) exit(-1);
       (f->eax) = read(*(int*)(f->esp+4), *(char **)(f->esp+8), *(unsigned*)(f->esp+12));
       break;
+    case SYS_SEEK:
+      if(!is_valid_ptr(*(unsigned*)(f->esp+8))) exit(-1);
+      seek(*(int*)(f->esp+4), *(unsigned*)(f->esp+8));
+    case SYS_TELL:
+      (f->eax) = tell(*(int*)(f->esp+4));
+      break;
+    case SYS_FILESIZE:
+      if(!is_valid_fd(*(int*)(f->esp+4))) exit(-1);
+      (f->eax) = filesize(*(int*)(f->esp+4));
+      break;
+    case SYS_REMOVE:
+      if(!is_valid_string(*(char **)(f->esp+4))) exit(-1);
+      (f->eax) = remove(*(char **)(f->esp+4));
+      break;
     case SYS_EXEC:
       if(!is_valid_string(*(char **)(f->esp+4))) exit(-1);
       (f->eax) = (pid_t) exec(*(const char**)(f->esp+4));
@@ -102,13 +116,28 @@ int open(const char *file){
     }
   }
   return fd;
-
 }
 
 void close(int fd){
   struct file *file = thread_current()->fdtable[fd];
   file_close(file);
   thread_current()->fdtable[fd] = NULL;
+}
+
+void seek(int fd, unsigned position){
+
+}
+
+unsigned tell(int fd){
+
+}
+
+int filesize(int fd){
+
+}
+
+bool remove(const char *file_name){
+
 }
 
 int write(int fd, const void *buffer, unsigned size){
