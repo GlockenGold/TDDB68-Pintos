@@ -125,19 +125,22 @@ void close(int fd){
 }
 
 void seek(int fd, unsigned position){
-
+  struct file file = thread_current()->fdtable[fd];
+  file_seek(file, position);
 }
 
 unsigned tell(int fd){
-
+  struct file file = thread_current()->fdtable[fd];
+  file_tell(file);
 }
 
 int filesize(int fd){
-
+  struct file file = thread_current()->fdtable[fd];
+  return file_length(file);
 }
 
 bool remove(const char *file_name){
-
+  return filesys_remove(file_name);
 }
 
 int write(int fd, const void *buffer, unsigned size){
