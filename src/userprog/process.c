@@ -347,7 +347,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
     char **argvptr;
     int j;
-    for(j=argc; j>=0; j--){
+    for(j=0; j<argc; j++){
       ptr -= sizeof(char*);
       memcpy(ptr, &(argv[j]), sizeof(char*));
       argvptr = ptr;
