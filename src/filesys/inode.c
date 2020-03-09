@@ -119,7 +119,7 @@ inode_create (disk_sector_t sector, off_t length)
 struct inode *
 inode_open (disk_sector_t sector)
 {
-  smea_down(&open_close_sema);
+  sema_down(&open_close_sema);
   struct list_elem *e;
   struct inode *inode;
 
