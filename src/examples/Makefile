@@ -4,8 +4,8 @@ SRCDIR = ..
 # To add a new test, put its name on the PROGS list
 # and then add a name_SRC line that lists its source files.
 PROGS = cat cmp cp echo halt hex-dump ls mcat mcp mkdir pwd rm shell \
-	bubsort insult lineup matmult recursor \
-	sumargv lab2test lab1test lab1test2 lab3test1 lab3test2 lab4test1 pfs pfs_reader pfs_writer dummy longrun \
+	bubsort insult lineup matmult recursor recursor_ng \
+	sumargv lab2test lab1test lab1test2 pfs pfs_reader pfs_writer dummy longrun \
 	child parent create-bad printf
 
 # Added test programs
@@ -14,9 +14,6 @@ sumargv_SRC = sumargv.c
 lab2test_SRC = lab2test.c
 lab1test_SRC = lab1test.c
 lab1test2_SRC = lab1test2.c
-lab3test1_SRC = lab3test1.c
-lab3test2_SRC = lab3test2.c
-lab4test1_SRC = lab4test1.c
 pfs_SRC = pfs.c
 pfs_reader_SRC = pfs_reader.c
 pfs_writer_SRC = pfs_writer.c
@@ -37,6 +34,7 @@ insult_SRC = insult.c
 lineup_SRC = lineup.c
 ls_SRC = ls.c
 recursor_SRC = recursor.c
+recursor_ng_SRC = recursor_ng.c
 rm_SRC = rm.c
 
 # Should work in project 3; also in project 4 if VM is included.

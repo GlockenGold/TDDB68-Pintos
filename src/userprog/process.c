@@ -321,7 +321,9 @@ load (const char *file_name, void (**eip) (void), void **esp)
   }
 
   void *ptr = *esp;
-  char *argv[32];
+  char *str_list[32];
+  void **argv[32];
+  char *argv_current;
   int argc = 0;
   char *token, *save_ptr;
   char *cmd_line = file_name;
@@ -329,16 +331,27 @@ load (const char *file_name, void (**eip) (void), void **esp)
   for(token = strtok_r(cmd_line, " ", &save_ptr); token != NULL;
       token = strtok_r(NULL, " ", &save_ptr))
       {
-        // change pointer to overwrite top element in stack, +1 to account for \0 (I think)
-        ptr -= strlen(token) +1;
-        // Copy contents of token onto the stack
-        memcpy(ptr, token, strlen(token)+1);
-        argv[argc] = ptr;
+        str_list[argc] = token; // HÄR ÄR KOMPLETTERING TILL LAB 4
         argc++;
         if(argc == 31) break;
       }
     // Setting last element to NULL
-    argv[argc] = NULL;
+    str_list[argc] = NULL;
+    ptr--;
+
+    for(int j =(argc-1); j>=0; j--){
+      argv_current = str_list[j];
+      char *start = (argv_current -1);
+      while(*argv_current != '\0'){
+        argv_current++;
+      }
+      for(;argv_current != start; argv_current--){
+        *((char*)ptr) = *argv_current;
+        ptr--;
+      }
+      argv[j] = ptr+1;
+    }
+    // HÄR SLUTAR KOMPLETTERING TILL LAB 4
 
     // Allign word to make stack divisible by 4
     while((int)ptr % 4 != 0){
@@ -347,7 +360,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
     char **argvptr;
     int j;
-    for(j=0; j<argc; j++){
+    for(j=argc; j>=0; j--){
       ptr -= sizeof(char*);
       memcpy(ptr, &(argv[j]), sizeof(char*));
       argvptr = ptr;

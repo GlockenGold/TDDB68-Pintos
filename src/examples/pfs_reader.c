@@ -10,39 +10,42 @@ char buffer[BIG];
 
 int main(void)
 {
-  int bytes, i, j, inconsistency;
-  int id, messages;
-  
-  messages = open("messages");
-  
-  for (i = 0; i < TIMES; ++i)
-  {
-    id = open("file.1");
-    bytes = read(id, buffer, BIG);
-    close(id);
-    
-    if (bytes != BIG)
-    {
-      write(messages, "Buffer not filled!\n", 19);
-      continue;
-    }
-    /* now check for consistency */
-    for (j = 1, inconsistency = 0; j < BIG; ++j)
-    {
-      if (buffer[0] != buffer[j])
-      {
-        /* Ooops, inconsistency */
-	write(messages, "INCONSISTENCY.", 14);
-	printf("INCONSISTENCY\n");
-	inconsistency = 1;
-	break; /* no need to check further */
-      }
-    }
-    if (!inconsistency)
-    {
-      write(messages, "cool\n", 5);
-    }
-  }
-  close(messages);
-  exit(0);
+	int bytes, j;
+	int id;
+	int fsize;
+
+	printf("-\n");
+	id = open("file.1");
+
+	fsize = filesize(id);
+	if (fsize < BIG * TIMES) {
+		printf("Invalid filesize\n");
+		close(id);
+		exit(-1);
+	}
+	while (tell(id) <= (fsize-BIG))
+	{
+		bytes = read(id, buffer, BIG);
+
+		if (bytes != BIG)
+		{
+			printf("Buffer not filled, read %d\n", bytes);
+			close(id);
+			exit(-1);
+		}
+		/* now check for consistency */
+		for (j = 1; j < BIG; ++j)
+		{
+			if (buffer[0] != buffer[j])
+			{
+				/* Ooops, inconsistency */
+				printf("INCONSISTENCY\n");
+				close(id);
+				exit(-1);
+			}
+		}
+	}
+	printf("*-\n");
+	close(id);
+	exit(0);
 }
